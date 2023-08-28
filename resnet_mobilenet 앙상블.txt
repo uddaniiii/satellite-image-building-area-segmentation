@@ -1,0 +1,36 @@
+import torch
+import torch.nn as nn
+import torchvision.models as models
+
+# ResNet50과 MobileNetV3 Large 모델 불러오기
+resnet50 = models.resnet50(pretrained=True)
+mobilenetv3_large = models.mobilenet_v3_large(pretrained=True)
+
+# 모델 아키텍처 변경하기 (마지막 레이어 제거)
+resnet50 = nn.Sequential(*list(resnet50.children())[:-1])
+mobilenetv3_large = nn.Sequential(*list(mobilenetv3_large.children())[:-1])
+
+# 앙상블 모델 정의
+class EnsembleModel(nn.Module):
+    def __init__(self, resnet_model, mobilenet_model):
+        super(EnsembleModel, self).__init__()
+        self.resnet_model = resnet_model
+        self.mobilenet_model = mobilenet_model
+        self.fc = nn.Linear(4096, 1)  # 앙상블된 출력을 하나의 채널로 결합하기 위한 Fully Connected 레이어
+
+    def forward(self, x):
+        resnet_output = self.resnet_model(x)
+        mobilenet_output = self.mobilenet_model(x)
+        
+        # ResNet50의 출력 크기는 (batch_size, 2048, 1, 1)
+        # MobileNetV3 Large의 출력 크기는 (batch_size, 1280, 1, 1)
+        # 두 모델의 출력을 concat하여 하나의 특성 맵으로 만듭니다.
+        concatenated_output = torch.cat((resnet_output, mobilenet_output), dim=1)
+
+        # 앙상블된 출력을 Fully Connected 레이어에 통과시켜 하나의 채널로 결합합니다.
+        ensemble_output = self.fc(concatenated_output.view(x.size(0), -1))
+        
+        return ensemble_output
+
+# 앙상블 모델 생성
+ensemble_model = EnsembleModel(resnet50, mobilenetv3_large)
