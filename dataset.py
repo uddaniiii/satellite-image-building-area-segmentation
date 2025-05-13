@@ -3,7 +3,7 @@ import cv2
 from torch.utils.data import Dataset
 from utils import rle_decode
 import pandas as pd
-
+from config import DATA_DIR
 
 class SatelliteDataset(Dataset):
     def __init__(self, csv_file, transform=None, infer=False): # transform 전처리하거나 다른 형태로 변환하는데 사용, infer 데이터를 추론 모드로 설정할지 여부
@@ -15,7 +15,8 @@ class SatelliteDataset(Dataset):
         return len(self.data)
 
     def __getitem__(self, idx):
-        img_path = self.data.iloc[idx, 1] # 해당 인덱스에 위치한 데이터프레임의 두 번째 열(column)에 있는 이미지 경로를 가져옴
+        img_path = os.path.join(DATA_DIR, self.data.iloc[idx, 1]) # 해당 인덱스에 위치한 데이터프레임의 두 번째 열(column)에 있는 이미지 경로를 가져옴
+
         image = cv2.imread(img_path)
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         if self.infer:
