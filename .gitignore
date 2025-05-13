@@ -1,5 +1,10 @@
+<<<<<<< HEAD
 data/
 *.zip
 __pycache__/*.pyc
 *.txt
 checkpoints/*
+=======
+open.zip
+open/
+>>>>>>> e6610ea3969d4a8cbc6c897f67aafa9831e283cc
